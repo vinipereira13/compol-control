@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compol Control</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0c0c0c;
+    --surface: #161616;
+    --surface2: #202020;
+    --surface3: #2a2a2a;
+    --border: #2e2e2e;
+    --border2: #3a3a3a;
+    --text: #f0f0f0;
+    --text2: #a0a0a0;
+    --text3: #5a5a5a;
+    --white: #ffffff;
+    --reels: #c8f04a;
+    --captacao: #4af0c8;
+    --both: #f04a8a;
+    --keynote: #f0a84a;
+    --palco1: #f0f0f0;
+    --palco2: #a8a8a8;
+    --palco3: #6a6a6a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+  }
+
+  .app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .main-area { display: flex; flex: 1; overflow: hidden; }
+
+  /* HEADER */
+  .header {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .header-left { display: flex; align-items: baseline; gap: 14px; }
+
+  .header-left h1 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: var(--white);
+  }
+
+  .header-left p {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .header-right { display: flex; gap: 6px; align-items: center; }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .stat-chip strong { color: var(--white); font-weight: 700; }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* FILTERS */
+  .filters {
+    padding: 10px 28px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 2px;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text3);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .filter-btn:hover { background: var(--surface2); color: var(--text2); }
+  .filter-btn.active { background: var(--white); color: #000; border-color: var(--white); }
+  .filter-btn[data-service="reels"].active { background: var(--reels); border-color: var(--reels); color: #000; }
+  .filter-btn[data-service="captacao"].active { background: var(--captacao); border-color: var(--captacao); color: #000; }
+  .filter-btn[data-service="none"].active { background: var(--surface3); border-color: var(--border2); color: var(--text2); }
+
+  .sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+
+  /* SCROLL */
+  .scroll-area { flex: 1; overflow-y: auto; padding: 24px 28px 40px; }
+  .scroll-area::-webkit-scrollbar { width: 5px; }
+  .scroll-area::-webkit-scrollbar-track { background: var(--bg); }
+  .scroll-area::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 272px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    flex: 1;
+  }
+
+  .sidebar-count {
+    font-family: 'Space Mono', monospace;
+    background: var(--white);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 8px; }
+  .sidebar-scroll::-webkit-scrollbar { width: 3px; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--surface3); }
+
+  .svc-divider {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    padding: 8px 6px 4px;
+  }
+
+  .svc-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color 0.12s;
+  }
+
+  .svc-item:hover { border-color: var(--border2); }
+
+  .svc-item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+
+  .svc-item-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    margin-bottom: 7px;
+  }
+
+  .svc-icons { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  .svc-icon {
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .svc-icon.reels { background: rgba(200,240,74,0.12); color: var(--reels); border: 1px solid rgba(200,240,74,0.25); }
+  .svc-icon.captacao { background: rgba(74,240,200,0.12); color: var(--captacao); border: 1px solid rgba(74,240,200,0.25); }
+
+  /* DAY SECTIONS */
+  .day-section { margin-bottom: 36px; }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .day-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid var(--border2);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  .day-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--white); }
+  .day-count { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text3); margin-left: auto; }
+
+  /* PALCO GRID */
+  .palcos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .palco-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .palco-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .palco-bar { width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+  .palco-p1 .palco-bar { background: var(--palco1); }
+  .palco-p2 .palco-bar { background: var(--palco2); }
+  .palco-p3 .palco-bar { background: var(--palco3); }
+
+  .palco-name { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .palco-p1 .palco-name { color: var(--palco1); }
+  .palco-p2 .palco-name { color: var(--palco2); }
+  .palco-p3 .palco-name { color: var(--palco3); }
+
+  /* SPEAKER CARDS */
+  .speaker-list { padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+
+  .speaker-card {
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    border-left: 2px solid transparent;
+    transition: all 0.12s;
+    cursor: pointer;
+  }
+
+  .speaker-card:hover { background: var(--surface2); border-color: var(--border); }
+  .speaker-card.has-service { background: var(--surface2); border-color: var(--border); }
+  .speaker-card.has-service:hover { border-color: var(--border2); }
+  .speaker-card.has-reels-only { border-left-color: var(--reels) !important; }
+  .speaker-card.has-captacao-only { border-left-color: var(--captacao) !important; }
+  .speaker-card.has-both { border-left-color: var(--both) !important; }
+
+  .card-top { display: flex; align-items: flex-start; gap: 6px; }
+
+  .card-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    flex-shrink: 0;
+    margin-top: 2px;
+    min-width: 30px;
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .speaker-card.has-service .card-name { color: var(--white); }
+
+  .card-role {
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 2px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-badges { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
+
+  .badge-keynote {
+    font-family: 'Space Mono', monospace;
+    font-size: 7px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    background: rgba(240,168,74,0.1);
+    color: var(--keynote);
+    border: 1px solid rgba(240,168,74,0.2);
+    text-transform: uppercase;
+  }
+
+  .service-dots { display: flex; gap: 2px; }
+  .sdot { width: 6px; height: 6px; border-radius: 50%; }
+  .sdot.reels { background: var(--reels); }
+  .sdot.captacao { background: var(--captacao); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 24px;
+    width: 380px;
+    max-width: 92vw;
+  }
+
+  .modal-name { font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: -0.3px; margin-bottom: 3px; }
+  .modal-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text3); margin-bottom: 18px; }
+  .modal-label { font-family: 'Space Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 8px; }
+
+  .svc-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+
+  .svc-opt {
+    padding: 16px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    color: var(--text2);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .svc-opt:hover { background: var(--surface2); }
+  .svc-opt .opt-icon { font-size: 24px; }
+  .svc-opt.sel-reels { border-color: var(--reels); background: rgba(200,240,74,0.07); color: var(--reels); }
+  .svc-opt.sel-captacao { border-color: var(--captacao); background: rgba(74,240,200,0.07); color: var(--captacao); }
+
+  .modal-actions { display: flex; gap: 6px; }
+
+  .btn {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.12s;
+  }
+
+  .btn:hover { opacity: 0.8; }
+  .btn-cancel { background: var(--surface2); color: var(--text2); flex: 1; }
+  .btn-clear { background: transparent; border: 1px solid #3a1a1a; color: #ff6b6b; }
+  .btn-save { background: var(--white); color: #000; flex: 2; font-weight: 700; }
+
+  .empty-msg { padding: 16px 10px; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text3); text-align: center; }
+
+  @media (max-width: 1000px) { .sidebar { display: none; } }
+  @media (max-width: 700px) {
+    .header { padding: 14px 16px; flex-wrap: wrap; }
+    .filters { padding: 8px 16px; }
+    .scroll-area { padding: 16px 16px 40px; }
+    .palcos-grid { grid-template-columns: 1fr; }
+    .header-right { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Compol Control</h1>
+      <p>Produção Audiovisual · 3 Dias · 3 Palcos</p>
+    </div>
+    <div class="header-right" id="statsBar"></div>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">Dia</span>
+    <button class="filter-btn active" data-filter="day" data-day="all">Todos</button>
+    <button class="filter-btn" data-filter="day" data-day="1">Dia 1</button>
+    <button class="filter-btn" data-filter="day" data-day="2">Dia 2</button>
+    <button class="filter-btn" data-filter="day" data-day="3">Dia 3</button>
+    <div class="sep"></div>
+    <span class="filter-label">Serviço</span>
+    <button class="filter-btn active" data-filter="service" data-service="all">Todos</button>
+    <button class="filter-btn" data-filter="service" data-service="reels">Reels</button>
+    <button class="filter-btn" data-filter="service" data-service="captacao">Captação</button>
+    <button class="filter-btn" data-filter="service" data-service="none">Sem serviço</button>
+  </div>
+
+  <div class="main-area">
+    <div class="scroll-area" id="content"></div>
+
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Serviços fechados</div>
+        <span class="sidebar-count" id="sidebarCount">0</span>
+      </div>
+      <div class="sidebar-scroll" id="sidebarList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-name" id="modalName"></div>
+    <div class="modal-meta" id="modalMeta"></div>
+    <div class="modal-label">Serviços contratados</div>
+    <div class="svc-opts">
+      <button class="svc-opt" id="btnReels" onclick="toggleService('reels')">
+        <span class="opt-icon">🎬</span>
+        <span>Reels</span>
+      </button>
+      <button class="svc-opt" id="btnCaptacao" onclick="toggleService('captacao')">
+        <span class="opt-icon">🎥</span>
+        <span>Captação Integral</span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-clear" onclick="clearServices()">Remover</button>
+      <button class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-save" onclick="saveServices()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  dia1: { label: "Dia 1", palcos: {
+    "Palco Eleições": [
+      { time:"09:00", name:"Paulo Loiola", role:"Estrategista Político", keynote:true },
+      { time:"09:30", name:"Abel Lumer", role:"Estrategista Político" },
+      { time:"10:00", name:"Dani Braga", role:"Estrategista Política, Jornalista e Palestrante" },
+      { time:"10:30", name:"Paulo Castro", role:"Jornalista" },
+      { time:"12:30", name:"Mariana Bonjour", role:"Advogada e Consultora Política" },
+      { time:"13:00", name:"Leandro Petrin", role:"Especialista em Direito Eleitoral" },
+      { time:"13:30", name:"Flávia Sausmikat", role:"Diretora-Geral do Instituto Action de Pesquisas" },
+      { time:"14:00", name:"Patrick Paraense", role:"Especialista em Marketing Político e Comunicação Institucional" },
+      { time:"14:30", name:"Rodrigo P. Gouvêa", role:"Especialista em Comunicação Estratégica Política e Eleitoral" },
+      { time:"16:00", name:"Jade Beatriz", role:"Estrategista Política" },
+      { time:"16:30", name:"Victor Lafayett", role:"Sócio-Diretor da Storia Mídia" },
+      { time:"17:00", name:"Rodrigo Gadelha", role:"Estrategista Político" },
+      { time:"17:30", name:"Gil Castillo", role:"Consultora Política", keynote:true },
+      { time:"18:00", name:"Luciana Barros", role:"Mestre em Ciência Política" },
+    ],
+    "Palco Compol": [
+      { time:"09:00", name:"Marcus Vinícius", role:"Jornalista e Estrategista de Comunicação Política" },
+      { time:"09:30", name:"Ricardo Amado", role:"Especialista em Marketing Político" },
+      { time:"10:00", name:"Nani Blancio", role:"Estrategista", keynote:true },
+      { time:"10:30", name:"Rayane Moreira", role:"Estrategista e Consultora de Comunicação Política" },
+      { time:"12:30", name:"Fred Perillo", role:"Consultor e Especialista em Comunicação Política e Pública" },
+      { time:"13:00", name:"Emerson Saraiva", role:"Jornalista e Fundador do Eleja.se", keynote:true },
+      { time:"13:30", name:"Vanessa Marques", role:"Consultora em Comunicação Política, Mobilização Digital e Planejamento Estratégico" },
+      { time:"16:00", name:"Daniel Ivoskus", role:"Consultor Político", keynote:true },
+      { time:"16:30", name:"Juarez Guedes", role:"Estrategista", keynote:true },
+      { time:"17:00", name:"Jorge Santiago Barnés", role:"Doutor em Comunicação Política" },
+      { time:"17:30", name:"Natalia Aparicio", role:"Analista, Criadora de Conteúdo e Colunista" },
+      { time:"18:00", name:"António Sola", role:"Estrategista Internacional", keynote:true },
+    ],
+    "Palco Voto": [
+      { time:"09:00", name:"Celso Lamounier", role:"Consultor em Marketing Político e Estrategista" },
+      { time:"09:30", name:"Milson Godoy", role:"Professor Universitário, Pesquisador e Jornalista" },
+      { time:"10:00", name:"Lucia Bonetto", role:"Assessora em Estratégia e Comunicação" },
+      { time:"10:30", name:"Heliox Esparza", role:"Especialista em Cultura Organizacional" },
+      { time:"12:30", name:"Yair Cybel", role:"Jornalista" },
+      { time:"13:00", name:"Mauro Becerra", role:"Jornalista" },
+      { time:"14:00", name:"Selva Castiñeira", role:"Analista Política Nacional e Internacional" },
+      { time:"14:30", name:"Shila Vilker", role:"Pesquisadora e Analista de Opinião Pública e Comportamento Eleitoral" },
+      { time:"16:00", name:"Tony Souza", role:"Consultor e Estrategista Político" },
+      { time:"16:30", name:"Laercio Menegaz Jr.", role:"Consultor e Estrategista Eleitoral" },
+      { time:"17:00", name:"Marcello Natale", role:"Estrategista Digital com Foco em Comunicação Política" },
+      { time:"17:30", name:"Wesley Mendonça", role:"Consultor Político" },
+    ]
+  }},
+  dia2: { label: "Dia 2", palcos: {
+    "Palco Eleições": [
+      { time:"09:00", name:"Glauco Rojas", role:"Estrategista Político" },
+      { time:"09:30", name:"Guga Fleury", role:"Consultor Estrategista" },
+      { time:"10:00", name:"Fernanda Kleinebeing", role:"Secretária de Comunicação da Prefeitura de Florianópolis" },
+      { time:"10:30", name:"João Frey", role:"Especialista em Marketing Político e Campanhas Eleitorais" },
+      { time:"11:00", name:"Eddy Caldeira", role:"Especialista em Gestão Pública, Comunicação, Licitações e Estratégia de Mandatos" },
+      { time:"11:30", name:"Willy Paes", role:"Advogado Eleitoral e Gestor de Campanhas" },
+      { time:"12:00", name:"Fernanda Camargos", role:"Publicitária e Coordenadora de Marketing" },
+      { time:"12:30", name:"Wagner Bezerra", role:"Estrategista" },
+      { time:"13:00", name:"Carlos Fara", role:"Consultor Político", keynote:true },
+      { time:"13:30", name:"Stenio Muniz", role:"Publicitário" },
+      { time:"14:00", name:"Daniel Machado", role:"Especialista em Marketing Político" },
+      { time:"14:30", name:"João Henrique Faria", role:"Estrategista Político" },
+      { time:"15:00", name:"Manoel Filho", role:"Especialista em Comunicação Política" },
+      { time:"15:30", name:"Gilson Fernandes", role:"Estrategista de Marketing Político" },
+      { time:"16:00", name:"Tati Salustiano", role:"Criação de Narrativas e Estratégias" },
+      { time:"16:30", name:"Marcel Pinheiro", role:"Mestre em Comunicação e Problemas Socioculturais" },
+      { time:"17:00", name:"Paula Onofrio", role:"Especialista em Análise de Discurso Político" },
+      { time:"17:30", name:"Rodrigo Abella", role:"Cofundador da Social Mídia Gov" },
+    ],
+    "Palco Compol": [
+      { time:"09:00", name:"Fabrício Moser", role:"Especialista em Mobilização Política", keynote:true },
+      { time:"09:30", name:"Ary Engracia", role:"Consultor" },
+      { time:"10:00", name:"Deniza Gurgel", role:"Consultora em Comunicação e Especialista em Semiótica, Branding e Storytelling" },
+      { time:"10:30", name:"João Santana", role:"Estrategista", keynote:true },
+      { time:"11:00", name:"Julieta Waisgold", role:"Especialista em Estratégia e Discurso", keynote:true },
+      { time:"11:30", name:"Renato Dorgan", role:"Cantor Político" },
+      { time:"12:00", name:"Nazli Selin Özkan", role:"Vice-Diretora Executiva da Kapital Média London", keynote:true },
+      { time:"12:30", name:"Matheus Dias", role:"Especialista em Pesquisa e Diagnóstico Eleitoral" },
+      { time:"13:00", name:"Karina Terso", role:"Estrategista e Consultora em Comunicação" },
+      { time:"13:30", name:"Gisele Meter", role:"Consultora Digital para Perfis Políticos", keynote:true },
+      { time:"15:00", name:"Paulo Carlos López", role:"Doutor em Ciência Política e Comunicação" },
+      { time:"15:30", name:"Fabian Cardozo", role:"Consultor em Comunicação Política e Campanhas Eleitorais" },
+      { time:"16:00", name:"Cila Schulman", role:"CEO do IDEIA Instituto de Pesquisa", keynote:true },
+      { time:"16:30", name:"Darlan Campos", role:"Consultor em Marketing Político", keynote:true },
+      { time:"17:00", name:"Hélito Honorato", role:"Consultor Político", keynote:true },
+      { time:"17:30", name:"Fernando Vieira", role:"Jornalista e Advogado" },
+    ],
+    "Palco Voto": [
+      { time:"09:00", name:"Lucas Roberto", role:"Empreendedor, Palestrante e Fundador da Nova Agência" },
+      { time:"09:30", name:"Eduarda Aquino", role:"Publicitária" },
+      { time:"10:00", name:"Vinícius Pera", role:"Direção de Arte e Linguagem Visual na Comunicação Política" },
+      { time:"10:30", name:"Caique Douglas", role:"Storymaker e Especialista em Comunicação Política Digital" },
+      { time:"11:00", name:"Jemerson Souza", role:"Estrategista em Comunicação Política" },
+      { time:"11:30", name:"Duda Hillebrandt", role:"Jornalista, Empreendedora e Estrategista de Comunicação Política" },
+      { time:"12:00", name:"Nicolas Haag", role:"Estrategista em Comunicação Política" },
+      { time:"12:30", name:"Amanda Weber", role:"Jornalista e Estrategista de Comunicação Política" },
+      { time:"13:00", name:"Luka Uhoa", role:"Publicitária, Jornalista e Estrategista de Comunicação Política" },
+      { time:"13:30", name:"Kim Borgström", role:"Estrategista e Comunicador Político" },
+      { time:"14:00", name:"JP Do Whats", role:"Jornalista e Estrategista em Comunicação Política e Digital" },
+      { time:"14:30", name:"Mile Augusto", role:"Presidente da União Catarinense da Água dos Estudantes" },
+      { time:"15:00", name:"Alisson Casar da Silva", role:"CEO da Quadrifi" },
+      { time:"15:30", name:"Marcilene Maia", role:"Estrategista e Consultora de Marketing Político" },
+      { time:"16:00", name:"Ellen Santos", role:"Especialista em Comunicação Governamental e Marketing Político" },
+      { time:"16:30", name:"Marcelo Senise", role:"Sociólogo e Marqueteiro Político" },
+      { time:"17:00", name:"Robert Willian Valporto", role:"Estrategista e Consultor em Marketing Político" },
+      { time:"17:30", name:"Vitória Famer", role:"Consultora em Comunicação Política" },
+    ]
+  }},
+  dia3: { label: "Dia 3", palcos: {
+    "Palco Eleições": [
+      { time:"09:00", name:"Tiago Brum", role:"Publicitário e CEO da Agência Condor" },
+      { time:"09:30", name:"Maico Camargos", role:"Doutor em Ciência Política" },
+      { time:"10:00", name:"Rodrigo Bueno", role:"Estrategista de Marketing Político" },
+      { time:"10:30", name:"Zaca Honorato", role:"Consultor Político" },
+      { time:"12:00", name:"Michele Pilon", role:"Advogada" },
+      { time:"12:30", name:"Jade Martins", role:"Sócia-Proprietária da Alma, Publicitária e Diretora de Planejamento e Posicionamento" },
+      { time:"13:00", name:"Vitória Barreto", role:"Publicitária" },
+      { time:"13:30", name:"Alan Bueno", role:"Especialista em Tecnologia para Campanhas Políticas" },
+      { time:"14:00", name:"Márcio Lemos", role:"Especialista em Marketing e Análise Política" },
+      { time:"16:00", name:"Marcos Paulo Sá", role:"Consultor e Estrategista Político" },
+      { time:"16:30", name:"Marcus Paulo Pessôa", role:"Secretário de Comunicação da UFSC" },
+      { time:"17:00", name:"Paulo Santiago", role:"Jornalista com Atuação em Assessoria de Imprensa Institucional e Corporativa" },
+      { time:"17:30", name:"Diogo de Souza", role:"Colunista e Comentarista no Grupo ND" },
+    ],
+    "Palco Compol": [
+      { time:"09:00", name:"Aline Bezerra", role:"Estratégia Política" },
+      { time:"09:30", name:"Wilsinho Pedroso", role:"Analista Político e Consultor Eleitoral" },
+      { time:"10:00", name:"Giba Braga Mello", role:"Estrategista e Criativo Sênior" },
+      { time:"10:30", name:"Maurício Moura", role:"Fundador do IDEIA, Sócio do Zafra e Colunista de O Globo", keynote:true },
+      { time:"12:00", name:"Fabio Gomes", role:"Doutor em Comunicação e Semiótica" },
+      { time:"12:30", name:"Lucas Pimenta", role:"Jornalista e Estrategista de Marketing Político", keynote:true },
+      { time:"13:00", name:"Felipe Soutello", role:"Estrategista", keynote:true },
+      { time:"17:00", name:"Alberto Lage", role:"Consultor de Marketing Político, Comunicação Governamental e Estratégia Eleitoral" },
+      { time:"17:30", name:"Emanoel Borges", role:"Especialista em Estratégia Política, Pesquisas Eleitorais e Comportamento do Eleitor" },
+      { time:"18:00", name:"Renon Fonseca", role:"Consultor Legislativo da Câmara dos Deputados, Advogado e Consultor Político" },
+      { time:"18:30", name:"Leandro Groppo", role:"Estrategista" },
+    ],
+    "Palco Voto": [
+      { time:"09:00", name:"Harley Dias", role:"Estrategista Político" },
+      { time:"09:30", name:"Gabriel Guimarães", role:"Analista Político e de Comunicação" },
+      { time:"10:00", name:"Mariana Ramos", role:"Diretora de Conteúdo e Mídia na Agência Condor e Consultora Política do Condor" },
+      { time:"16:00", name:"Guto Araujo", role:"Publicitário e Estrategista de Marketing Político" },
+    ]
+  }}
+};
+
+// SERVICES
+const DEFAULT_SERVICES = {
+  "dia1|Palco Eleições|Paulo Loiola":     { reels:true,  captacao:false },
+  "dia1|Palco Eleições|Flávia Sausmikat": { reels:true,  captacao:true  },
+  "dia1|Palco Compol|António Sola":       { reels:true,  captacao:true  },
+  "dia3|Palco Compol|Alberto Lage":       { reels:true,  captacao:true  },
+  "dia3|Palco Compol|Lucas Pimenta":      { reels:false, captacao:true  },
+  "dia3|Palco Eleições|Marcos Paulo Sá":  { reels:true,  captacao:true  },
+};
+
+const services = JSON.parse(localStorage.getItem('av_services') || 'null') || DEFAULT_SERVICES;
+function saveToStorage() { localStorage.setItem('av_services', JSON.stringify(services)); }
+
+let currentFilter = { day:'all', service:'all' };
+let modalTarget = null;
+let modalTemp = { reels:false, captacao:false };
+
+function getKey(d,p,n) { return `${d}|${p}|${n}`; }
+function getService(d,p,n) { return services[getKey(d,p,n)] || null; }
+function hasService(s) { return s && (s.reels || s.captacao); }
+
+function svcClass(s) {
+  if (!s) return '';
+  if (s.reels && s.captacao) return 'has-service has-both';
+  if (s.reels) return 'has-service has-reels-only';
+  if (s.captacao) return 'has-service has-captacao-only';
+  return '';
+}
+
+function matchFilter(svc, f) {
+  if (f==='all') return true;
+  if (f==='none') return !hasService(svc);
+  if (f==='reels') return svc && svc.reels;
+  if (f==='captacao') return svc && svc.captacao;
+  return true;
+}
+
+function renderStats() {
+  let total=0, r=0, c=0;
+  Object.values(services).forEach(s => {
+    if (!hasService(s)) return;
+    total++; if(s.reels) r++; if(s.captacao) c++;
+  });
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-chip"><div class="chip-dot" style="background:#fff"></div><strong>${total}</strong> fechados</div>
+    <div class="stat-chip"><div class="chip-dot" style="background:var(--reels)"></div><strong>${r}</strong> reels</div>
+    <div class="stat-chip"><div class="chip-dot" style="background:var(--captacao)"></div><strong>${c}</strong> captação</div>
+  `;
+}
+
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  list.innerHTML = '';
+  let total = 0;
+
+  ['dia1','dia2','dia3'].forEach(dk => {
+    const day = data[dk];
+    const items = [];
+    Object.keys(day.palcos).forEach(palco => {
+      day.palcos[palco].forEach(sp => {
+        const svc = getService(dk, palco, sp.name);
+        if (hasService(svc)) items.push({ sp, palco, dk, svc });
+      });
+    });
+    if (!items.length) return;
+    total += items.length;
+
+    list.innerHTML += `<div class="svc-divider">${day.label} — ${items.length} palestrante${items.length>1?'s':''}</div>`;
+
+    items.forEach(({ sp, palco, dk: dayKey, svc }) => {
+      const div = document.createElement('div');
+      div.className = 'svc-item';
+      div.onclick = () => openModal(dayKey, palco, sp);
+      let icons = '';
+      if (svc.reels)    icons += `<span class="svc-icon reels">🎬 Reels</span>`;
+      if (svc.captacao) icons += `<span class="svc-icon captacao">🎥 Captação</span>`;
+      div.innerHTML = `
+        <div class="svc-item-name">${sp.name}</div>
+        <div class="svc-item-meta">${sp.time} · ${palco}</div>
+        <div class="svc-icons">${icons}</div>
+      `;
+      list.appendChild(div);
+    });
+  });
+
+  document.getElementById('sidebarCount').textContent = total;
+}
+
+function renderAll() {
+  renderStats();
+  renderSidebar();
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  ['dia1','dia2','dia3'].forEach((dk, di) => {
+    if (currentFilter.day !== 'all' && currentFilter.day !== String(di+1)) return;
+    const day = data[dk];
+    let closed = 0;
+    Object.keys(day.palcos).forEach(p => day.palcos[p].forEach(sp => { if(hasService(getService(dk,p,sp.name))) closed++; }));
+
+    const section = document.createElement('div');
+    section.className = 'day-section';
+    section.innerHTML = `
+      <div class="day-header">
+        <div class="day-num">${day.label}</div>
+        <div class="day-title">${['Primeiro Dia','Segundo Dia','Terceiro Dia'][di]}</div>
+        <div class="day-count">${closed} com serviço</div>
+      </div>
+      <div class="palcos-grid" id="grid-${dk}"></div>
+    `;
+    content.appendChild(section);
+    const grid = section.querySelector(`#grid-${dk}`);
+
+    Object.keys(day.palcos).forEach((palco, pi) => {
+      const col = document.createElement('div');
+      col.className = `palco-col palco-p${pi+1}`;
+      col.innerHTML = `
+        <div class="palco-header">
+          <div class="palco-bar"></div>
+          <div class="palco-name">${palco}</div>
+        </div>
+        <div class="speaker-list" id="list-${dk}-${pi}"></div>
+      `;
+      grid.appendChild(col);
+      const list = col.querySelector(`#list-${dk}-${pi}`);
+      let shown = 0;
+
+      day.palcos[palco].forEach(sp => {
+        const svc = getService(dk, palco, sp.name);
+        if (!matchFilter(svc, currentFilter.service)) return;
+        shown++;
+
+        const card = document.createElement('div');
+        card.className = `speaker-card ${svcClass(svc)}`;
+
+        let dots = '';
+        if (svc && svc.reels)    dots += `<div class="sdot reels"></div>`;
+        if (svc && svc.captacao) dots += `<div class="sdot captacao"></div>`;
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="card-time">${sp.time}</span>
+            <div class="card-body">
+              <div class="card-name">${sp.name}</div>
+              <div class="card-role">${sp.role}</div>
+            </div>
+            <div class="card-badges">
+              ${dots ? `<div class="service-dots">${dots}</div>` : ''}
+              ${sp.keynote ? '<span class="badge-keynote">KN</span>' : ''}
+            </div>
+          </div>
+        `;
+        card.onclick = () => openModal(dk, palco, sp);
+        list.appendChild(card);
+      });
+
+      if (!shown) list.innerHTML = `<div class="empty-msg">Nenhum resultado</div>`;
+    });
+  });
+}
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.filter;
+    const val = btn.dataset.day || btn.dataset.service;
+    document.querySelectorAll(`[data-filter="${type}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (type==='day') currentFilter.day = val;
+    else currentFilter.service = val;
+    renderAll();
+  });
+});
+
+function openModal(dk, palco, sp) {
+  modalTarget = { dk, palco, sp };
+  const svc = getService(dk, palco, sp.name) || { reels:false, captacao:false };
+  modalTemp = { ...svc };
+  document.getElementById('modalName').textContent = sp.name;
+  document.getElementById('modalMeta').textContent = `${data[dk].label} · ${palco} · ${sp.time}`;
+  updateModalBtns();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function updateModalBtns() {
+  document.getElementById('btnReels').className    = `svc-opt${modalTemp.reels    ? ' sel-reels'    : ''}`;
+  document.getElementById('btnCaptacao').className = `svc-opt${modalTemp.captacao ? ' sel-captacao' : ''}`;
+}
+
+function toggleService(type) { modalTemp[type] = !modalTemp[type]; updateModalBtns(); }
+
+function saveServices() {
+  const { dk, palco, sp } = modalTarget;
+  services[getKey(dk, palco, sp.name)] = { ...modalTemp };
+  saveToStorage(); closeModal(); renderAll();
+}
+
+function clearServices() {
+  const { dk, palco, sp } = modalTarget;
+  delete services[getKey(dk, palco, sp.name)];
+  saveToStorage(); closeModal(); renderAll();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalTarget = null;
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+renderAll();
+</script>
+</body>
+</html>
